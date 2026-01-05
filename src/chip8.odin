@@ -1,7 +1,6 @@
 package chip8
 
 import "base:runtime"
-import "core:mem"
 
 
 // Number of general purpose 8-bit registers.
