@@ -1,0 +1,23 @@
+{
+	"folders": [
+		{ "path": ".", }
+	],
+	"build_systems": [
+		{
+			"name": "Odin: Build",
+			"cmd": "odin build ./src -show-timings -sanitize:address -debug -out:chip8.exe",
+			"working_dir": "$folder",
+			"file_regex": "(.+)\\((\\d+):(\\d+)\\)(.+)",
+		}
+	],
+	"settings":
+	{
+		"LSP":
+		{
+			"odin":
+			{
+				"enabled": true
+			}
+		}
+	},
+}

@@ -1,0 +1,10 @@
+
+# Binaries
+*.exe
+*.dll
+*.pdb
+*.zip
+/chip8
+
+# Sublime Text
+*.sublime-workspace

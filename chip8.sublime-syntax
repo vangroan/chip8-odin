@@ -1,0 +1,69 @@
+%YAML 1.2
+---
+# Sublime Text Syntax for Chip8 Assembly
+# See http://www.sublimetext.com/docs/syntax.html
+name: Chip8
+file_extensions:
+  - asm
+  - chip8
+scope: source.chip8
+contexts:
+  main:
+    # Strings begin and end with quotes, and use backslashes as an escape
+    # character
+    - match: '"'
+      scope: punctuation.definition.string.begin.chip8
+      push: double_quoted_string
+
+    # Comments begin with a ';' and finish at the end of the line
+    - match: ';'
+      scope: punctuation.definition.comment.chip8
+      push: line_comment
+
+    # Keywords are if, else for and while.
+    # Note that blackslashes don't need to be escaped within single quoted
+    # strings in YAML. When using single quoted strings, only single quotes
+    # need to be escaped: this is done by using two single quotes next to each
+    # other.
+    - match: '\b(ADD|AND|CALL|CLS|DRW|DRAW|LD|JP|OR|SHL|SHR|SE|SNE|SKP|SKNP|SUB|SUBN|SYS|RAND|RET|XOR)\b'
+      scope: keyword.chip8
+    - match: '\b(add|and|call|cls|drw|draw|ld|jp|or|shl|shr|se|sne|skp|sknp|sub|subn|sys|rand|ret|xor)\b'
+      scope: keyword.chip8
+
+    # Registers
+    - match: '\b(F|BCD|DT|I|K|ST)\b'
+      scope: entity.name.chip8
+    - match: '\b[vV][0-9a-fA-F]{1,2}\b' # V0-VF
+      scope: variable.language.chip8
+
+    # Numbers
+    - match: '\b(-)?[0-9.]+\b'          # decimal
+      scope: constant.numeric.chip8
+    - match: '\b(-)?0x[a-fA-F0-9.]+\b'  # hexadecimal
+      scope: constant.numeric.chip8
+    - match: '\b(-)?0b[0-1.]+\b'        # binary
+      scope: constant.numeric.chip8
+
+    # Label Def
+    # Must be the first thing on the line.
+    # Can have an arbitrary number of spaces before and after the period.
+    - match: '^\s*\.\s*[\w_]+\b'
+      scope: entity.name.function
+
+    # Label Access
+    - match: '\.\s*[\w_]+\b'
+      scope: variable.function.chip8
+
+
+  double_quoted_string:
+    - meta_scope: string.quoted.double.chip8
+    - match: '\\.'
+      scope: constant.character.escape.chip8
+    - match: '"'
+      scope: punctuation.definition.string.end.chip8
+      pop: true
+
+  line_comment:
+    - meta_scope: comment.line.chip8
+    - match: $
+      pop: true
