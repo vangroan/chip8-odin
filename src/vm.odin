@@ -1,6 +1,7 @@
 package chip8
 
 import "base:runtime"
+import "core:math/rand"
 
 
 // Default number of instruction to evaluate per frame.
@@ -45,6 +46,7 @@ vm_create :: proc(allocator := context.allocator) -> (vm: Chip8_VM, err: runtime
 	vm = Chip8_VM {}
 	chip8_init(&vm.cpu, allocator) or_return
 	vm.ipf = DEFAULT_IPF
+	rand.reset(987654321)
 	return
 }
 
@@ -138,6 +140,60 @@ vm_step :: proc(vm: ^Chip8_VM) -> (flow: Chip8_Flow) {
 	// Add value NN to register VX. Carry flag is not set.
 	case 0x7:
 		vm.cpu.reg[vx] += nn
+	// Annn (LD I, addr)
+	//
+	// Set address register I to value NNN.
+	case 0xA:
+		vm.cpu.address = nnn
+	// Bnnn (JP V0, addr)
+	//
+	// Jump to location nnn + V0.
+	case 0xB:
+		target := (int(nnn) + int(vm.cpu.reg[0])) & MEMORY_MASK
+		if target <= vm.cpu.ip {
+			flow = .Jump
+		}
+		vm.cpu.ip = target
+	// CXNN (RND Vx, byte)
+	//
+	// Generate random number.
+	// Set register VX to the result of bitwise AND between a random number and NN.
+	case 0xC:
+		vm.cpu.reg[vx] = u8(rand.uint_range(0, 256)) & nn
+	// Dxyn (DRW Vx, Vy, nibble)
+	//
+	// Draw sprite to the display buffer, at coordinate as per registers Vx and Vy.
+	// Sprite is encoded as 8 pixels wide, N pixels high, stored in bits located in
+	// memory pointed to by address register I.
+	//
+	// If the sprite is drawn outside the display area, it is wrapped around to the other side.
+	//
+	// If the drawing operation erases existing pixels in the display buffer, register VF is set to
+	// 1, and set to 0 if no display bits are unset. This is used for collision detection.
+	case 0xD:
+		// Cast to unsigned for bitwise operations.
+		x := uint(vm.cpu.reg[vx])
+		y := uint(vm.cpu.reg[vy])
+		sprite_w    :: uint(SPRITE_WIDTH)
+		sprite_h    := uint(n)
+		sprite_addr := uint(vm.cpu.address) & MEMORY_MASK
+		is_erased := false
+		BIT :: 1
+
+		// Iteration from pointer in address register I to number of rows
+		// specified by opcode value N.
+		for r in 0..<sprite_h {
+			dy := (y + r) & DISPLAY_H_MASK
+			drow := vm.cpu.display[dy]
+			srow := vm.cpu.ram[(sprite_addr + r) & MEMORY_MASK]
+
+			dx1 := x & DISPLAY_W_MASK
+
+			if dx1 >= DISPLAY_WIDTH - SPRITE_WIDTH {
+				// Wrap to other side of screen.
+				dx1 = dx1 >> DISPLAY_WRAP_BITS
+			}
+		}
 	}
 
 	return flow

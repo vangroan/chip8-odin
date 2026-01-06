@@ -27,9 +27,19 @@ MEMORY_START :: 0x200
 
 DISPLAY_WIDTH  :: 64
 DISPLAY_HEIGHT :: 32
+DISPLAY_W_MASK :: DISPLAY_WIDTH - 1
+DISPLAY_H_MASK :: DISPLAY_HEIGHT - 1
+
+// Number of bits to shift right to wrap
+// display coordinates around the x-axis.
+// For display width of 64 pixels.
+DISPLAY_WRAP_BITS :: 6
+
+// Sprites have a fixed width in bits.
+SPRITE_WIDTH :: 8
 
 // Number of bytes the instruction pointer is advanced
-// during ojne machine step.
+// during one machine step.
 STEP_OFFSET :: 2
 
 // Address to a location in CHIP-8 RAM.
@@ -84,7 +94,7 @@ chip8_next_op :: proc(cpu: ^Chip8_CPU) -> (a: u8, b: u8) {
 	return
 }
 
-@(private)
+@private
 advance_ip :: #force_inline proc(cpu: ^Chip8_CPU) {
 	cpu.ip = (cpu.ip + STEP_OFFSET) & MEMORY_MASK
 }
